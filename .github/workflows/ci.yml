@@ -1,4 +1,14 @@
 # Source: GitHub starter workflow "Simple workflow" (MIT) — https://github.com/actions/starter-workflows/blob/main/ci/blank.yml
+#
+# Repaired by repocurator (feature 002): the trigger already named `main`,
+# which matches facts.json's default_branch, so it needed no fix. What did
+# need fixing was the Test job's placeholder step ("No tests yet. Replace
+# this step with your project's test command."), because the repository
+# ships no automated tests of its own (no "test" script in package.json, no
+# test files anywhere in the tree). The job below installs the pinned
+# dependencies (yarn.lock), builds the app for real with `yarn build` --
+# which needs no environment variables or external credentials -- and then
+# runs a smoke test (scripts/smoke-test.js) against the compiled output.
 name: CI
 
 on:
@@ -41,10 +51,8 @@ jobs:
           fi
           echo "All actions are pinned to full-length commit SHAs."
 
-      # Add your project's linters below this line.
-
   test:
-    name: Test
+    name: Build and test
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -52,7 +60,11 @@ jobs:
         with:
           persist-credentials: false
 
-      # Replace the step below with your project's test command. Pin any setup
-      # action you add to a full commit SHA, like the checkout step above.
-      - name: Run tests
-        run: echo "No tests yet. Replace this step with your project's test command."
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Smoke test
+        run: node scripts/smoke-test.js
